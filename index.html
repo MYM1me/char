@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Forge — AI 캐릭터/세계관 프롬프트 생성기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============ THEME TOKENS ============ */
+:root {
+  /* dark (default) */
+  --bg: #0f0e10;
+  --bg-elev: #1a1820;
+  --bg-elev-2: #232029;
+  --bg-input: #15131a;
+  --border: #2d2933;
+  --border-strong: #3d3845;
+  --text: #efe9dd;
+  --text-dim: #a39b8c;
+  --text-faint: #6e6759;
+  --accent: #d4a574;
+  --accent-hover: #e6b886;
+  --accent-soft: rgba(212, 165, 116, 0.12);
+  --danger: #d97757;
+  --success: #7ca982;
+  --shadow-soft: 0 1px 2px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+  --shadow-strong: 0 8px 32px rgba(0,0,0,0.4);
+  --display-font: 'Fraunces', Georgia, serif;
+  --body-font: 'Inter', -apple-system, sans-serif;
+  --mono-font: 'JetBrains Mono', Menlo, monospace;
+}
+[data-theme="light"] {
+  --bg: #faf7f0;
+  --bg-elev: #fffdf7;
+  --bg-elev-2: #f3eee2;
+  --bg-input: #ffffff;
+  --border: #e6dfd0;
+  --border-strong: #d4ccb8;
+  --text: #2a2620;
+  --text-dim: #6b6457;
+  --text-faint: #a39b8c;
+  --accent: #a8744a;
+  --accent-hover: #8c5e3a;
+  --accent-soft: rgba(168, 116, 74, 0.1);
+  --shadow-soft: 0 1px 2px rgba(60,40,20,0.06), 0 4px 16px rgba(60,40,20,0.04);
+  --shadow-strong: 0 8px 32px rgba(60,40,20,0.12);
+}
+
+/* ============ RESET / BASE ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--body-font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; }
+textarea { resize: vertical; }
+::selection { background: var(--accent); color: var(--bg); }
+
+/* ============ LAYOUT ============ */
+.app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: 100vh;
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .sidebar.mobile-open { display: flex; position: fixed; inset: 0; z-index: 100; }
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar {
+  background: var(--bg-elev);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-header {
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  font-family: var(--display-font);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.logo-mark {
+  color: var(--accent);
+  font-style: italic;
+  font-weight: 400;
+}
+.logo-sub {
+  font-family: var(--body-font);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.sidebar-nav {
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+.nav-item:hover { background: var(--bg-elev-2); color: var(--text); }
+.nav-item.active { background: var(--accent-soft); color: var(--accent); }
+.nav-item svg { flex-shrink: 0; opacity: 0.9; }
+
+.sidebar-section {
+  padding: 12px 22px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 8px;
+}
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 12px;
+}
+.sidebar-list-item {
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 1px;
+}
+.sidebar-list-item:hover { background: var(--bg-elev-2); color: var(--text); }
+.sidebar-list-item .name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-list-item .actions {
+  display: none;
+  gap: 4px;
+}
+.sidebar-list-item:hover .actions { display: flex; }
+.icon-btn {
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--text-faint);
+  transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--border); color: var(--text); }
+.icon-btn.danger:hover { color: var(--danger); }
+.empty-list {
+  padding: 14px 12px;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ============ MAIN ============ */
+.main {
+  overflow-y: auto;
+  background: var(--bg);
+  position: relative;
+}
+.main-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 36px 40px 80px;
+}
+@media (max-width: 700px) {
+  .main-inner { padding: 24px 18px 60px; }
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+.page-title {
+  font-family: var(--display-font);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+.page-title em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 300;
+}
+.page-subtitle {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* ============ FORMS ============ */
+.field { margin-bottom: 18px; }
+.field-row { display: grid; gap: 14px; }
+.field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.field-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 600px) {
+  .field-row.cols-2, .field-row.cols-3 { grid-template-columns: 1fr; }
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-faint);
+  margin-left: 6px;
+  font-size: 11.5px;
+}
+
+.input, .textarea, .select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 13.5px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.input:focus, .textarea:focus, .select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.textarea {
+  min-height: 90px;
+  line-height: 1.55;
+}
+.textarea.tall { min-height: 180px; }
+.textarea.code { font-family: var(--mono-font); font-size: 12.5px; }
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23a39b8c' d='M2 4l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* Radio group */
+.radio-group {
+  display: flex;
+  gap: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 3px;
+}
+.radio-group label {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.radio-group input { display: none; }
+.radio-group input:checked + label {
+  background: var(--accent);
+  color: #fff;
+}
+[data-theme="light"] .radio-group input:checked + label { color: #fff; }
+
+/* Checkbox */
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-dim);
+  user-select: none;
+}
+.check input { 
+  width: 16px; height: 16px; 
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Slider */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.slider::-moz-range-thumb {
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg);
+}
+.slider-val {
+  font-family: var(--mono-font);
+  font-size: 12px;
+  color: var(--text);
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ============ BUTTONS ============ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all 0.15s;
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn:hover { background: var(--bg-elev); border-color: var(--border-strong); }
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--bg-elev-2); }
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.btn-block { width: 100%; }
+
+/* ============ CARDS / SECTIONS ============ */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+.card-title {
+  font-family: var(--display-font);
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.card-desc {
+  color: var(--text-dim);
+  font-size: 12.5px;
+  margin-bottom: 16px;
+}
+
+/* ============ TABS ============ */
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 22px;
+}
+.tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ============ OUTPUT AREA ============ */
+.output-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 22px;
+}
+.output-header {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev-2);
+}
+.output-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.output-actions { display: flex; gap: 6px; }
+.output-body {
+  padding: 22px;
+  font-family: var(--mono-font);
+  font-size: 12.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 600px;
+  overflow-y: auto;
+  color: var(--text);
+}
+.output-body:empty::before {
+  content: '결과가 여기 표시됩니다.';
+  color: var(--text-faint);
+  font-style: italic;
+  font-family: var(--body-font);
+}
+.thinking-block {
+  background: var(--bg-input);
+  border-left: 2px solid var(--accent);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-family: var(--body-font);
+  font-style: italic;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.thinking-header {
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+.status-dot.streaming {
+  background: var(--accent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.status-dot.done { background: var(--success); }
+.status-dot.error { background: var(--danger); }
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ============ MODAL ============ */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-strong);
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title {
+  font-family: var(--display-font);
+  font-size: 18px;
+  font-weight: 500;
+}
+.modal-body {
+  padding: 22px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ============ TOAST ============ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 300;
+  box-shadow: var(--shadow-strong);
+  animation: toastIn 0.2s ease;
+}
+@keyframes toastIn { from { transform: translate(-50%, 8px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+/* ============ HELPERS ============ */
+.hidden { display: none !important; }
+.flex-row { display: flex; align-items: center; gap: 10px; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mt-12 { margin-top: 12px; }
+.mt-18 { margin-top: 18px; }
+.gap-8 { gap: 8px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 38px; height: 38px;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 900px) {
+  .mobile-menu-btn { display: flex; }
+}
+
+/* Tag for badges */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* List meta */
+.list-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+/* Template chips for picking */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.chip {
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.chip:hover { color: var(--text); border-color: var(--border-strong); }
+.chip.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+</style>
+</head>
+<body data-theme="dark">
+
+<button class="mobile-menu-btn" id="mobileMenuBtn" title="메뉴">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Prompt<span class="logo-mark">Forge</span></div>
+      <div class="logo-sub">Character / Worldbuilding</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="generate">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        생성
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        설정
+      </button>
+      <button class="nav-item" data-view="templates">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4H4zM4 12h16v4H4zM4 20h16"/></svg>
+        양식 관리
+      </button>
+    </nav>
+
+    <div class="sidebar-section">저장된 세계관</div>
+    <div class="sidebar-list" id="worldList" style="max-height: 180px; flex: none;">
+      <div class="empty-list">저장된 세계관이 없습니다</div>
+    </div>
+
+    <div class="sidebar-section">저장된 캐릭터</div>
+    <div class="sidebar-list" id="charList">
+      <div class="empty-list">저장된 캐릭터가 없습니다</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span style="font-size: 11px; color: var(--text-faint);">v1.0</span>
+      <button class="icon-btn" id="themeToggle" title="테마 전환" style="width: 28px; height: 28px;">
+        <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="main-inner">
+
+      <!-- ====== VIEW: GENERATE ====== -->
+      <section id="view-generate" class="view">
+        <header class="page-header">
+          <h1 class="page-title">새 <em>프롬프트</em> 생성</h1>
+          <p class="page-subtitle">아이디어를 적으면 양식에 맞춰 완성된 프롬프트로 만들어 드립니다.</p>
+        </header>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="world">세계관</button>
+          <button class="tab" data-tab="char">캐릭터</button>
+        </div>
+
+        <!-- WORLD TAB -->
+        <div id="tab-world" class="tab-panel">
+          <div class="card">
+            <h2 class="card-title">세계관 설정</h2>
+            <p class="card-desc">출력 형식과 아이디어를 입력하세요.</p>
+
+            <div class="field">
+              <label class="label">출력 형식</label>
+              <div class="radio-group">
+                <input type="radio" name="worldFormat" id="wf-mixed" value="mixed" checked>
+                <label for="wf-mixed">혼합</label>
+                <input type="radio" name="worldFormat" id="wf-prose" value="prose">
+                <label for="wf-prose">산문형</label>
+                <input type="radio" name="worldFormat" id="wf-keyword" value="keyword">
+                <label for="wf-keyword">키워드형</label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">세계관 이름 <span class="label-hint">(저장 시 사용)</span></label>
+              <input type="text" class="input" id="worldName" placeholder="예: 서드 에테르의 잿빛 도시">
+            </div>
+
+            <div class="field">
+              <label class="label">아이디어 / 설명</label>
+              <textarea class="textarea tall" id="worldIdea" placeholder="예: 중세풍 도시국가, 마법은 금기시되지만 지하에서 거래된다. 분위기는 차갑고 음습하며 끊임없이 비가 내린다..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARACTER TAB -->
+        <div id="tab-char" class="tab-panel hidden">
+          <div class="card">
+            <h2 class="card-title">캐릭터 설정</h2>
+            <p class="card-desc">사용할 양식을 고르고 아이디어를 입력하세요.</p>
+
+            <div class="field">
+              <label class="label">양식 선택</label>
+              <div class="chip-row" id="templateChips"></div>
+              <details style="margin-top: 8px;">
+                <summary style="cursor: pointer; font-size: 12.5px; color: var(--text-dim);">선택한 양식 미리보기 / 편집 (이번 생성에만 적용)</summary>
+                <textarea class="textarea code" id="charTemplateOverride" style="margin-top: 8px; min-height: 220px;" placeholder="양식을 골라주세요"></textarea>
+              </details>
+            </div>
+
+            <div class="field">
+              <label class="label">캐릭터 이름 <span class="label-hint">(저장 시 사용)</span></label>
+              <input type="text" class="input" id="charName" placeholder="예: 이세린">
+            </div>
+
+            <div class="field">
+              <label class="label">아이디어 / 설명</label>
+              <textarea class="textarea tall" id="charIdea" placeholder="예: 20대 후반 여성 검사. 차갑고 무뚝뚝하지만 동물에게는 한없이 약하다. 과거 친구의 죽음으로 인한 트라우마가 있고..."></textarea>
+            </div>
+
+            <div class="field">
+              <label class="check">
+                <input type="checkbox" id="useWorldContext">
+                저장된 세계관 참조해서 생성
+              </label>
+              <select class="select hidden" id="worldRefSelect" style="margin-top: 8px;">
+                <option value="">— 세계관 선택 —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- GENERATION CONTROLS (공통) -->
+        <div class="card">
+          <h2 class="card-title">생성 옵션</h2>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="label">AI 제공자</label>
+              <select class="select" id="provider">
+                <option value="anthropic">Claude (Anthropic)</option>
+                <option value="google">Gemini (Google)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">모델</label>
+              <select class="select" id="model"></select>
+            </div>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="label">최대 출력 토큰 <span class="label-hint">(max_tokens)</span></label>
+              <div class="slider-row">
+                <input type="range" class="slider" id="maxTokens" min="1024" max="64000" step="512" value="8192">
+                <span class="slider-val" id="maxTokensVal">8,192</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">최대 추론 토큰 <span class="label-hint">(thinking budget)</span></label>
+              <div class="slider-row">
+                <input type="range" class="slider" id="thinkBudget" min="0" max="32000" step="512" value="0">
+                <span class="slider-val" id="thinkBudgetVal">사용 안 함</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size: 11.5px; color: var(--text-faint); margin-top: -8px;">
+            추론 토큰을 0보다 크게 설정하면 extended thinking이 활성화됩니다. (max_tokens보다 작아야 함)
+          </p>
+
+          <div class="flex-between mt-18">
+            <label class="check">
+              <input type="checkbox" id="autoSave" checked>
+              생성 후 자동 저장
+            </label>
+            <button class="btn btn-primary" id="generateBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              생성하기
+            </button>
+          </div>
+        </div>
+
+        <!-- OUTPUT -->
+        <div class="output-card">
+          <div class="output-header">
+            <div class="output-title">
+              <span class="status-dot" id="statusDot"></span>
+              <span id="statusText">대기 중</span>
+            </div>
+            <div class="output-actions">
+              <button class="btn btn-sm btn-ghost" id="copyBtn">복사</button>
+              <button class="btn btn-sm btn-ghost" id="downloadBtn">.txt 다운로드</button>
+              <button class="btn btn-sm btn-ghost" id="saveManualBtn">저장</button>
+            </div>
+          </div>
+          <div class="output-body" id="output"></div>
+        </div>
+      </section>
+
+      <!-- ====== VIEW: SETTINGS ====== -->
+      <section id="view-settings" class="view hidden">
+        <header class="page-header">
+          <h1 class="page-title"><em>설정</em></h1>
+          <p class="page-subtitle">API 키와 시스템 프롬프트를 관리합니다. 모두 로컬(브라우저)에만 저장됩니다.</p>
+        </header>
+
+        <div class="card">
+          <h2 class="card-title">API 키</h2>
+          <p class="card-desc">키는 브라우저의 localStorage에만 저장됩니다.</p>
+
+          <div class="field">
+            <label class="label">Anthropic API Key <span class="label-hint">(sk-ant-...)</span></label>
+            <input type="password" class="input" id="anthropicKey" placeholder="sk-ant-...">
+          </div>
+
+          <div class="field">
+            <label class="label">Google AI Studio API Key</label>
+            <input type="password" class="input" id="googleKey" placeholder="AIza...">
+          </div>
+
+          <button class="btn btn-primary" id="saveKeysBtn">키 저장</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">시스템 프롬프트</h2>
+          <p class="card-desc">AI에게 주는 작업 지시문입니다. 각 생성 모드별로 따로 설정할 수 있습니다.</p>
+
+          <div class="field">
+            <label class="label">세계관 생성용 시스템 프롬프트</label>
+            <textarea class="textarea tall code" id="worldSystemPrompt"></textarea>
+            <button class="btn btn-sm btn-ghost mt-12" data-reset="world">기본값으로 복원</button>
+          </div>
+
+          <div class="field">
+            <label class="label">캐릭터 생성용 시스템 프롬프트</label>
+            <textarea class="textarea tall code" id="charSystemPrompt"></textarea>
+            <button class="btn btn-sm btn-ghost mt-12" data-reset="char">기본값으로 복원</button>
+          </div>
+
+          <button class="btn btn-primary" id="savePromptsBtn">시스템 프롬프트 저장</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">데이터</h2>
+          <p class="card-desc">저장된 양식, 세계관, 캐릭터, 설정을 백업하거나 복원합니다.</p>
+          <div class="flex-row gap-8">
+            <button class="btn btn-ghost" id="exportDataBtn">전체 내보내기 (.json)</button>
+            <button class="btn btn-ghost" id="importDataBtn">불러오기</button>
+            <input type="file" id="importFile" accept=".json" class="hidden">
+            <button class="btn btn-ghost" id="clearDataBtn" style="margin-left: auto; color: var(--danger);">전체 삭제</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== VIEW: TEMPLATES ====== -->
+      <section id="view-templates" class="view hidden">
+        <header class="page-header">
+          <h1 class="page-title">캐릭터 <em>양식</em> 관리</h1>
+          <p class="page-subtitle">기본 양식 2종과 직접 만든 양식을 관리합니다.</p>
+        </header>
+
+        <div class="card">
+          <div class="flex-between" style="margin-bottom: 16px;">
+            <div>
+              <h2 class="card-title">양식 목록</h2>
+              <p class="card-desc" style="margin-bottom: 0;">기본 양식은 편집 후 별도로 저장됩니다.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="newTemplateBtn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              새 양식
+            </button>
+          </div>
+          <div id="templateList"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============ MODAL (TEMPLATE EDITOR) ============ -->
+<div class="modal-backdrop hidden" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">양식 편집</div>
+      <button class="icon-btn" id="modalCloseBtn" style="width: 28px; height: 28px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="label">양식 이름</label>
+        <input type="text" class="input" id="modalTemplateName">
+      </div>
+      <div class="field">
+        <label class="label">양식 내용 <span class="label-hint">(빈 칸을 가진 마크다운 형식)</span></label>
+        <textarea class="textarea code" id="modalTemplateBody" style="min-height: 360px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modalCancelBtn">취소</button>
+      <button class="btn btn-primary" id="modalSaveBtn">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* JS는 별도 파일로 inline됨 (다음 단계) */
+</script>
+
+</body>
+</html>
