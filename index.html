@@ -1645,6 +1645,17 @@ ${worldCtx}
 }
 
 /* ============ Anthropic API ============ */
+/* thinkBudget 슬라이더 값을 Opus 4.8의 effort 레벨로 매핑 */
+function budgetToEffort(thinkBudget, maxTokens) {
+  // 슬라이더 비율로 5단계 매핑 (low / medium / high / xhigh / max)
+  const ratio = thinkBudget / Math.max(maxTokens, 1);
+  if (ratio < 0.1)  return 'low';
+  if (ratio < 0.25) return 'medium';
+  if (ratio < 0.5)  return 'high';   // 기본값
+  if (ratio < 0.8)  return 'xhigh';
+  return 'max';
+}
+
 async function callAnthropic({ key, model, maxTokens, thinkBudget, systemPrompt, userPrompt }) {
   const body = {
     model,
@@ -1654,8 +1665,14 @@ async function callAnthropic({ key, model, maxTokens, thinkBudget, systemPrompt,
     stream: true,
   };
   if (thinkBudget > 0) {
+  // Opus 4.8 이상은 adaptive thinking + effort 방식만 지원 (manual budget_tokens는 400 에러)
+  if (model === 'claude-opus-4-8') {
+    body.thinking = { type: 'adaptive' };
+    body.output_config = { effort: budgetToEffort(thinkBudget, maxTokens) };
+  } else {
     body.thinking = { type: 'enabled', budget_tokens: thinkBudget };
   }
+}
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
