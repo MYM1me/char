@@ -815,6 +815,30 @@ textarea { resize: vertical; }
                 <option value="">— 세계관 선택 —</option>
               </select>
             </div>
+
+            <div class="field">
+              <label class="check">
+                <input type="checkbox" id="nsfwOnlyMode">
+                🔞 NSFW 보강 모드 <span class="label-hint">(기존 캐릭터 설정에 NSFW만 추가/강화)</span>
+              </label>
+            </div>
+
+            <div id="nsfwOnlyPanel" class="hidden" style="margin-top: 8px; padding: 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px;">
+              <div class="field">
+                <label class="label">기존 캐릭터 설정 <span class="label-hint">(불러오거나 직접 붙여넣기)</span></label>
+                <select class="select" id="nsfwBaseCharSelect" style="margin-bottom: 8px;">
+                  <option value="">— 저장된 캐릭터에서 불러오기 —</option>
+                </select>
+                <textarea class="textarea code" id="nsfwBaseChar" style="min-height: 220px;" placeholder="기존 캐릭터 설정을 여기에 붙여넣거나 위에서 선택하세요..."></textarea>
+              </div>
+              <div class="field" style="margin-bottom: 0;">
+                <label class="label">NSFW 추가 요청 <span class="label-hint">(선택, 비워두면 알아서 보강)</span></label>
+                <textarea class="textarea" id="nsfwRequest" placeholder="예: 도미넌트 성향 강조, 특정 페티시 추가, 말투 예시 5개 이상..."></textarea>
+              </div>
+              <p style="font-size: 11.5px; color: var(--text-faint); margin-top: 10px;">
+                ※ 이 모드에서는 양식 선택과 위의 아이디어 입력란은 무시됩니다.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1335,6 +1359,20 @@ function renderSidebarLists() {
   }
 }
 
+function refreshNsfwBaseCharSelect() {
+  const sel = $('#nsfwBaseCharSelect');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— 저장된 캐릭터에서 불러오기 —</option>';
+  for (const c of state.chars) {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  }
+  if (cur) sel.value = cur;
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -1577,23 +1615,50 @@ ${idea}
     name = $('#worldName').value.trim() || `세계관 ${new Date().toLocaleString('ko-KR')}`;
     kind = 'world';
   } else {
-    const idea = $('#charIdea').value.trim();
-    if (!idea) { toast('아이디어를 입력해주세요'); return; }
-    const templateBody = $('#charTemplateOverride').value.trim();
-    if (!templateBody) { toast('양식이 비어있습니다'); return; }
+    // ===== NSFW 보강 모드 =====
+    if ($('#nsfwOnlyMode').checked) {
+      const baseChar = $('#nsfwBaseChar').value.trim();
+      if (!baseChar) { toast('기존 캐릭터 설정을 입력해주세요'); return; }
+      const nsfwReq = $('#nsfwRequest').value.trim();
 
-    // 세계관 컨텍스트
-    let worldCtx = '';
-    if ($('#useWorldContext').checked) {
-      const wid = $('#worldRefSelect').value;
-      const w = state.worlds.find(x => x.id === wid);
-      if (w) {
-        worldCtx = `\n\n## 참조 세계관: ${w.name}\n${w.body}\n`;
-      }
+      systemPrompt = state.systemPrompts.char + `
+
+## NSFW 보강 모드
+지금은 이미 작성된 캐릭터 설정에 NSFW 항목만 추가/강화하는 모드입니다.
+- 기존 설정의 성격, 과거, 말투 등과 자연스럽게 일관되는 NSFW 설정을 작성하세요.
+- 출력은 NSFW 부분만 마크다운 형식으로 작성하세요 (기존 설정 전체를 반복하지 마세요).
+- 다음 항목들을 가능한 한 구체적으로 다루세요: 성적 성향(도미/서브/스위치, 사디/마조 등), 민감 부위, 선호 행위/체위, 페티시·취향, 기피하는 행위·하드 리밋, 평소 성격과 잠자리에서의 변화, 직설적인 말투 예시 3~5개.
+- 추상적·완곡한 표현은 금지하고, 신체적·감각적 디테일과 직설적 표현을 사용하세요.`;
+
+      userPrompt = `## 기존 캐릭터 설정
+\`\`\`
+${baseChar}
+\`\`\`
+
+${nsfwReq ? `## 추가 요청\n${nsfwReq}\n\n` : ''}위 캐릭터에 어울리는 NSFW 설정을 구체적으로 작성해 주세요. 기존 설정은 반복하지 말고, NSFW 항목만 마크다운 헤더로 정리해 출력하세요.`;
+
+      name = $('#charName').value.trim() || `NSFW ${new Date().toLocaleString('ko-KR')}`;
+      kind = 'char';
     }
+    // ===== 일반 캐릭터 생성 모드 =====
+    else {
+      const idea = $('#charIdea').value.trim();
+      if (!idea) { toast('아이디어를 입력해주세요'); return; }
+      const templateBody = $('#charTemplateOverride').value.trim();
+      if (!templateBody) { toast('양식이 비어있습니다'); return; }
 
-    systemPrompt = state.systemPrompts.char;
-    userPrompt = `## 사용할 양식
+      // 세계관 컨텍스트
+      let worldCtx = '';
+      if ($('#useWorldContext').checked) {
+        const wid = $('#worldRefSelect').value;
+        const w = state.worlds.find(x => x.id === wid);
+        if (w) {
+          worldCtx = `\n\n## 참조 세계관: ${w.name}\n${w.body}\n`;
+        }
+      }
+
+      systemPrompt = state.systemPrompts.char;
+      userPrompt = `## 사용할 양식
 \`\`\`
 ${templateBody}
 \`\`\`
@@ -1602,8 +1667,9 @@ ${templateBody}
 ${idea}
 ${worldCtx}
 위 양식의 모든 빈 칸을 채워 캐릭터 프롬프트를 작성해 주세요. 양식의 구조와 항목명은 그대로 유지하세요.`;
-    name = $('#charName').value.trim() || `캐릭터 ${new Date().toLocaleString('ko-KR')}`;
-    kind = 'char';
+      name = $('#charName').value.trim() || `캐릭터 ${new Date().toLocaleString('ko-KR')}`;
+      kind = 'char';
+    }
   }
 
   // 마지막 모델 기억
@@ -1953,6 +2019,27 @@ function bind() {
   // 세계관 참조 체크박스
   $('#useWorldContext').onchange = (e) => {
     $('#worldRefSelect').classList.toggle('hidden', !e.target.checked);
+  };
+
+  // NSFW 보강 모드 토글
+  $('#nsfwOnlyMode').onchange = (e) => {
+    $('#nsfwOnlyPanel').classList.toggle('hidden', !e.target.checked);
+    // 켤 때 저장된 캐릭터 셀렉트 갱신
+    if (e.target.checked) refreshNsfwBaseCharSelect();
+  };
+
+  // 저장된 캐릭터 선택 → 본문 자동 채우기
+  $('#nsfwBaseCharSelect').onchange = (e) => {
+    const id = e.target.value;
+    if (!id) return;
+    const c = state.chars.find(x => x.id === id);
+    if (c) {
+      $('#nsfwBaseChar').value = c.body;
+      // 캐릭터 이름도 같이 채워주기 (저장 라벨용)
+      if (!$('#charName').value.trim()) {
+        $('#charName').value = c.name + ' (NSFW 보강)';
+      }
+    }
   };
 
   // 양식 override 텍스트박스 변경 감지
