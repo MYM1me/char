@@ -661,7 +661,76 @@ textarea { resize: vertical; }
   margin-top: 2px;
 }
 
-/* Template chips for picking */
+/* ============ INTRO PAGE (split view) ============ */
+.intro-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 22px;
+  min-height: 560px;
+}
+@media (max-width: 1100px) {
+  .intro-split { grid-template-columns: 1fr; }
+}
+.intro-pane {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.intro-pane-header {
+  padding: 12px 16px;
+  background: var(--bg-elev-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.intro-code {
+  flex: 1;
+  font-family: var(--mono-font);
+  font-size: 11.5px;
+  line-height: 1.55;
+  padding: 14px 16px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+  background: var(--bg-input);
+  max-height: 700px;
+}
+.intro-code:empty::before {
+  content: 'HTML 코드가 여기 표시됩니다.';
+  color: var(--text-faint);
+  font-style: italic;
+  font-family: var(--body-font);
+}
+.intro-preview-frame {
+  flex: 1;
+  border: 0;
+  width: 100%;
+  background: #fff;
+  min-height: 540px;
+}
+.intro-empty-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-style: italic;
+  font-size: 13px;
+  background: var(--bg-input);
+}
+
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -710,6 +779,10 @@ textarea { resize: vertical; }
       <button class="nav-item" data-view="settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         설정
+      </button>
+      <button class="nav-item" data-view="intro">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        소개 페이지
       </button>
       <button class="nav-item" data-view="templates">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4H4zM4 12h16v4H4zM4 20h16"/></svg>
@@ -948,6 +1021,12 @@ textarea { resize: vertical; }
             <button class="btn btn-sm btn-ghost mt-12" data-reset="char">기본값으로 복원</button>
           </div>
 
+          <div class="field">
+            <label class="label">소개 페이지 생성용 시스템 프롬프트</label>
+            <textarea class="textarea tall code" id="introSystemPrompt"></textarea>
+            <button class="btn btn-sm btn-ghost mt-12" data-reset="intro">기본값으로 복원</button>
+          </div>
+
           <button class="btn btn-primary" id="savePromptsBtn">시스템 프롬프트 저장</button>
         </div>
 
@@ -960,6 +1039,125 @@ textarea { resize: vertical; }
             <input type="file" id="importFile" accept=".json" class="hidden">
             <button class="btn btn-ghost" id="clearDataBtn" style="margin-left: auto; color: var(--danger);">전체 삭제</button>
           </div>
+        </div>
+      </section>
+
+      <!-- ====== VIEW: INTRO PAGE ====== -->
+      <section id="view-intro" class="view hidden">
+        <header class="page-header">
+          <h1 class="page-title">캐릭터 <em>소개 페이지</em></h1>
+          <p class="page-subtitle">캐릭터 설정을 기반으로 {{user}}가 시작 전에 알아두면 좋은 정보만 담은 HTML 소개 페이지를 생성합니다.</p>
+        </header>
+
+        <div class="card">
+          <h2 class="card-title">입력</h2>
+          <p class="card-desc">캐릭터는 저장된 것에서 선택하거나 직접 붙여넣으세요.</p>
+
+          <div class="field">
+            <label class="label">캐릭터 설정 <span class="label-hint">(필수)</span></label>
+            <select class="select" id="introCharSelect" style="margin-bottom: 8px;">
+              <option value="">— 저장된 캐릭터에서 불러오기 —</option>
+            </select>
+            <textarea class="textarea code" id="introCharBody" style="min-height: 180px;" placeholder="캐릭터 설정을 여기에 붙여넣거나 위에서 선택하세요..."></textarea>
+          </div>
+
+          <div class="field">
+            <label class="label">세계관 설정 <span class="label-hint">(선택)</span></label>
+            <select class="select" id="introWorldSelect" style="margin-bottom: 8px;">
+              <option value="">— 사용 안 함 —</option>
+            </select>
+            <textarea class="textarea code" id="introWorldBody" style="min-height: 120px;" placeholder="세계관을 함께 참조하려면 위에서 선택하거나 직접 붙여넣으세요 (선택사항)..."></textarea>
+          </div>
+
+          <div class="field">
+            <label class="label">디자인/내용 추가 요청 <span class="label-hint">(선택)</span></label>
+            <textarea class="textarea" id="introExtraIdea" placeholder="예: 다크 판타지 분위기로, 카드형 레이아웃 위주, 캐릭터의 트라우마는 강조하지 말고 호불호 위주로..."></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">생성 옵션</h2>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="label">AI 제공자</label>
+              <select class="select" id="introProvider">
+                <option value="anthropic">Claude (Anthropic)</option>
+                <option value="google">Gemini (Google)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">모델</label>
+              <select class="select" id="introModel"></select>
+            </div>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="label">최대 출력 토큰</label>
+              <div class="slider-row">
+                <input type="range" class="slider" id="introMaxTokens" min="2048" max="64000" step="512" value="16384">
+                <span class="slider-val" id="introMaxTokensVal">16,384</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">최대 추론 토큰</label>
+              <div class="slider-row">
+                <input type="range" class="slider" id="introThinkBudget" min="0" max="32000" step="512" value="0">
+                <span class="slider-val" id="introThinkBudgetVal">사용 안 함</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-between mt-18">
+            <label class="check">
+              <input type="checkbox" id="introAutoSave" checked>
+              생성 후 자동 저장
+            </label>
+            <button class="btn btn-primary" id="introGenerateBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              소개 페이지 생성
+            </button>
+          </div>
+        </div>
+
+        <div class="output-card">
+          <div class="output-header">
+            <div class="output-title">
+              <span class="status-dot" id="introStatusDot"></span>
+              <span id="introStatusText">대기 중</span>
+            </div>
+            <div class="output-actions">
+              <button class="btn btn-sm btn-ghost" id="introCopyBtn">코드 복사</button>
+              <button class="btn btn-sm btn-ghost" id="introDownloadBtn">.html 다운로드</button>
+              <button class="btn btn-sm btn-ghost" id="introSaveBtn">저장</button>
+              <button class="btn btn-sm btn-ghost" id="introOpenBtn">새 창에서 열기</button>
+            </div>
+          </div>
+          <div class="intro-split">
+            <div class="intro-pane">
+              <div class="intro-pane-header">
+                <span>HTML 코드</span>
+                <span style="text-transform: none; font-weight: 400; color: var(--text-faint); font-size: 11px;" id="introCodeStat"></span>
+              </div>
+              <div class="intro-code" id="introCode"></div>
+            </div>
+            <div class="intro-pane">
+              <div class="intro-pane-header">
+                <span>실시간 미리보기</span>
+                <label class="check" style="font-size: 11px; text-transform: none; letter-spacing: 0;">
+                  <input type="checkbox" id="introLivePreview" checked>
+                  스트리밍 중 갱신
+                </label>
+              </div>
+              <iframe class="intro-preview-frame hidden" id="introPreview" sandbox="allow-same-origin"></iframe>
+              <div class="intro-empty-preview" id="introPreviewEmpty">생성된 페이지가 여기 표시됩니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 18px;">
+          <h2 class="card-title">저장된 소개 페이지</h2>
+          <div id="introList"></div>
         </div>
       </section>
 
@@ -1146,6 +1344,48 @@ const DEFAULT_SYSTEM_PROMPTS = {
 - 메타 코멘트 없이 바로 양식의 빈 칸이 채워진 형태로만 출력할 것
 - 코드 블록(\`\`\`)으로 감싸지 말 것
 - 양식에 명시되지 않은 헤더나 항목을 임의로 추가하지 말 것`,
+
+  intro: `당신은 AI 채팅용 캐릭터의 "소개 페이지(HTML)"를 디자인·제작하는 전문가입니다.
+{{user}}가 이 캐릭터와 채팅을 시작하기 전에 알아두면 좋은 정보만 선별해, 분위기 있는 HTML 페이지로 만들어 주세요.
+
+## 정보 선별 원칙 (매우 중요)
+- 모든 설정을 옮기지 말 것. {{user}}가 시작 전에 "알아두면 좋은" 정보만 담으세요.
+  - 포함: 캐릭터 이름·외형 개요·기본 직업/배경·세계관 맥락·만남의 배경(어떻게 마주치게 되는지)·기본 성격 인상·{{user}}와의 관계 설정·주의할 톤(다크/로맨틱 등)
+  - 제외: NSFW 디테일, 깊은 트라우마의 구체적 트리거, 비밀스러운 과거, 호불호 디테일 전부, 민감 부위, 말투 예시 전부 등 — 이런 것들은 "직접 대화하며 알아가는 것"이 더 좋음
+- 캐릭터에 대한 호기심을 자극하되, 스포일러는 피할 것
+
+## 출력 형식 (절대 규칙)
+- 결과는 오직 HTML 코드만 출력하세요. 마크다운 코드블록(\`\`\`)으로 감싸지 마세요. 설명·주석·메타 코멘트도 절대 넣지 마세요.
+- 출력은 \`<div>\`로 시작하는 단일 컨테이너여야 합니다. \`<html>\`, \`<head>\`, \`<body>\` 태그를 쓰지 마세요. 외부 리소스(\`<script>\`, \`<link>\`, 외부 폰트 import 등) 일절 금지.
+- **허용되는 HTML 태그는 다음뿐입니다:** \`<div>\`, \`<p>\`, \`<span>\`, \`<b>\`, \`<i>\`, \`<strong>\`, \`<em>\`, \`<a>\`, \`<br>\`, \`<hr>\`, \`<img>\`. 그 외 태그(h1~h6, ul, li, section, header, button 등)는 절대 사용하지 마세요. 제목·목록·구획 등은 모두 \`<div>\`와 \`<p>\`에 클래스/스타일을 줘서 표현하세요.
+- 스타일은 인라인 \`style="..."\`로 적용하세요. \`<style>\` 태그를 만들지 마세요.
+- 색·여백·폰트크기·border·gradient·shadow 등 자유롭게 사용 가능합니다.
+
+## 폰트 / 가독성 원칙
+- \`font-family\`는 시스템에 보편적으로 있는 가독성 좋은 폰트를 사용하세요: \`'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif\` 같은 한국어 친화 조합을 기본으로. 장식용으로 \`serif\` 폰트를 한정적으로 곁들이는 것은 OK.
+- 본문 \`font-size\`는 14~16px, \`line-height\`는 1.6~1.8 사이. 너무 작게 쓰지 말 것.
+- 글자 색과 배경 색의 명도 대비를 충분히 줄 것.
+- 장식용 큰 제목조차 시각적으로 읽힐 수 있어야 함 (지나치게 얇거나 흐린 색 금지).
+
+## 디자인 원칙
+- 캐릭터·세계관의 톤(다크/로맨틱/판타지/시퀄러/모던/고풍 등)에 맞춰 색감·여백·구도를 결정하세요. 매번 다르게.
+- 장식과 꾸밈을 적극 사용하되, **무분별한 이모지 남발 금지, 의미 없는 박스 중첩 금지**. 모든 장식은 분위기에 기여해야 함.
+- 페이지를 단순한 카드 한 장이 아니라, 여러 시각적 섹션이 흐르는 구조로 구성하세요 (예: 표제부 → 첫인상/외형 → 배경/맥락 → 관계·만남 → 톤/주의사항 등). 섹션 구분은 헤더 텍스트, 구분선(\`<hr>\` 또는 \`<div>\`), 여백, 배경 변화, 장식적 기호(◆ ・ ─ ✦ 등) 등을 적절히 사용.
+- 인용구 스타일의 짧은 문장, 한 줄 강조 문구, 캐릭터의 시그니처 표현 한두 줄을 곁들이면 좋음.
+- 페이지 외곽 컨테이너는 \`max-width: 720px\` 정도로 잡고 \`margin: 0 auto\`로 가운데 정렬하세요.
+
+## 애니메이션 사용
+다음 클래스 이름을 \`class="..."\`로 부여하면 애니메이션이 적용됩니다(별도 keyframes 정의 불필요, 외부에서 처리됨):
+- 등장: fadeInUp, fadeInDown, fadeInLeft, fadeInRight, zoomIn, zoomInUp, backInUp, bounceInUp, slideInUp, slideInLeft, slideInRight, slideInDown, flipInX, flipInY, rotateIn, jackInTheBox
+- 반복: pulse, heartBeat, swing, jello, spin, flash, bounce
+- 기타: tada, rubberBand, headShake, contentShow
+
+애니메이션은 **분위기에 어울리는 것만 절제해서** 사용하세요. 모든 요소에 다 붙이지 말 것. 등장 애니메이션은 \`style="animation-delay: 0.3s; animation-duration: 0.8s;"\` 같이 인라인으로 타이밍 제어 가능합니다(키프레임명은 클래스로, 시간만 인라인 style로). 단, 외부 환경에서 적용되지 않을 수도 있으므로 애니메이션 없이도 페이지가 완전해 보이도록 설계하세요.
+
+## 출력 시 주의
+- 코드 외 어떤 텍스트도 출력하지 마세요. 첫 글자는 \`<\`로 시작해야 합니다.
+- \`{{user}}\`, \`{{char}}\` 플레이스홀더는 그대로 유지하세요.
+- 한국어로 작성하세요.`,
 };
 
 /* ============ 모델 목록 ============ */
@@ -1189,6 +1429,7 @@ const state = {
   selectedTemplateId: LS.get('selectedTemplate', 'builtin-1'),
   worlds: LS.get('worlds', []),
   chars: LS.get('chars', []),
+  intros: LS.get('intros', []),
   keys: LS.get('keys', { anthropic: '', google: '' }),
   systemPrompts: LS.get('systemPrompts', { ...DEFAULT_SYSTEM_PROMPTS }),
   theme: LS.get('theme', 'dark'),
@@ -1196,6 +1437,9 @@ const state = {
   currentThinking: '',
   isGenerating: false,
   abortController: null,
+  introIsGenerating: false,
+  introAbortController: null,
+  introCurrentOutput: '',
 };
 
 // 기본 양식이 변경/누락되어 있으면 보강
@@ -1248,6 +1492,7 @@ function setView(view) {
 
   if (view === 'templates') renderTemplateList();
   if (view === 'settings') loadSettingsInputs();
+  if (view === 'intro') initIntroView();
 }
 
 function setTab(tab) {
@@ -1559,6 +1804,7 @@ function loadSettingsInputs() {
   $('#googleKey').value = state.keys.google || '';
   $('#worldSystemPrompt').value = state.systemPrompts.world || DEFAULT_SYSTEM_PROMPTS.world;
   $('#charSystemPrompt').value = state.systemPrompts.char || DEFAULT_SYSTEM_PROMPTS.char;
+  $('#introSystemPrompt').value = state.systemPrompts.intro || DEFAULT_SYSTEM_PROMPTS.intro;
 }
 
 /* ============ 생성 폼 현재 탭에 따라 표시 ============ */
@@ -1925,6 +2171,7 @@ function exportData() {
     templates: state.templates,
     worlds: state.worlds,
     chars: state.chars,
+    intros: state.intros,
     systemPrompts: state.systemPrompts,
     // keys는 보안상 제외
   };
@@ -1947,6 +2194,7 @@ function importData(file) {
       if (data.templates) { state.templates = data.templates; LS.set('templates', data.templates); ensureBuiltins(); LS.set('templates', state.templates); }
       if (data.worlds) { state.worlds = data.worlds; LS.set('worlds', data.worlds); }
       if (data.chars) { state.chars = data.chars; LS.set('chars', data.chars); }
+      if (data.intros) { state.intros = data.intros; LS.set('intros', data.intros); }
       if (data.systemPrompts) { state.systemPrompts = data.systemPrompts; LS.set('systemPrompts', data.systemPrompts); }
       renderSidebarLists();
       renderTemplateChips();
@@ -1963,7 +2211,7 @@ function importData(file) {
 function clearAllData() {
   if (!confirm('정말 모든 데이터(양식, 세계관, 캐릭터, 시스템 프롬프트, 키)를 삭제하시겠습니까?\n\n되돌릴 수 없습니다.')) return;
   if (!confirm('한 번 더 확인합니다. 정말로 모두 삭제할까요?')) return;
-  for (const key of ['templates', 'worlds', 'chars', 'keys', 'systemPrompts', 'selectedTemplate', 'theme']) {
+  for (const key of ['templates', 'worlds', 'chars', 'intros', 'keys', 'systemPrompts', 'selectedTemplate', 'theme']) {
     LS.del(key);
   }
   // model 키들도 삭제
@@ -1973,7 +2221,516 @@ function clearAllData() {
   location.reload();
 }
 
+/* ============================================================
+   소개 페이지 (INTRO) 로직
+   ============================================================ */
+
+const ANIMATION_RUNTIME_CSS = `
+@keyframes pf-fadeInUp { from { opacity: 0; transform: translate3d(0, 24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInDown { from { opacity: 0; transform: translate3d(0, -24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInLeft { from { opacity: 0; transform: translate3d(-24px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInRight { from { opacity: 0; transform: translate3d(24px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInTopLeft { from { opacity: 0; transform: translate3d(-24px, -24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInTopRight { from { opacity: 0; transform: translate3d(24px, -24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInBottomLeft { from { opacity: 0; transform: translate3d(-24px, 24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeInBottomRight { from { opacity: 0; transform: translate3d(24px, 24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pf-fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes pf-zoomIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+@keyframes pf-zoomInUp { from { opacity: 0; transform: scale(0.5) translate3d(0, 30px, 0); } to { opacity: 1; transform: scale(1) translate3d(0, 0, 0); } }
+@keyframes pf-zoomInDown { from { opacity: 0; transform: scale(0.5) translate3d(0, -30px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-zoomInLeft { from { opacity: 0; transform: scale(0.5) translate3d(-30px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-zoomInRight { from { opacity: 0; transform: scale(0.5) translate3d(30px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-backInUp { 0% { opacity: 0.7; transform: translateY(120px) scale(0.7); } 80% { opacity: 0.7; transform: translateY(0) scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pf-backInDown { 0% { opacity: 0.7; transform: translateY(-120px) scale(0.7); } 80% { opacity: 0.7; transform: translateY(0) scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pf-backInLeft { 0% { opacity: 0.7; transform: translateX(-120px) scale(0.7); } 80% { opacity: 0.7; transform: translateX(0) scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pf-backInRight { 0% { opacity: 0.7; transform: translateX(120px) scale(0.7); } 80% { opacity: 0.7; transform: translateX(0) scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pf-bounceInUp { 0%, 60%, 75%, 90%, 100% { transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); } 0% { opacity: 0; transform: translate3d(0, 1200px, 0); } 60% { opacity: 1; transform: translate3d(0, -10px, 0); } 75% { transform: translate3d(0, 5px, 0); } 90% { transform: translate3d(0, -2px, 0); } 100% { transform: none; } }
+@keyframes pf-bounceInDown { 0%, 60%, 75%, 90%, 100% { transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); } 0% { opacity: 0; transform: translate3d(0, -1200px, 0); } 60% { opacity: 1; transform: translate3d(0, 10px, 0); } 75% { transform: translate3d(0, -5px, 0); } 100% { transform: none; } }
+@keyframes pf-bounceInLeft { 0% { opacity: 0; transform: translate3d(-1200px, 0, 0); } 60% { opacity: 1; transform: translate3d(15px, 0, 0); } 75% { transform: translate3d(-10px, 0, 0); } 100% { transform: none; } }
+@keyframes pf-bounceInRight { 0% { opacity: 0; transform: translate3d(1200px, 0, 0); } 60% { opacity: 1; transform: translate3d(-15px, 0, 0); } 75% { transform: translate3d(10px, 0, 0); } 100% { transform: none; } }
+@keyframes pf-slideInUp { from { opacity: 0; transform: translate3d(0, 60px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-slideInDown { from { opacity: 0; transform: translate3d(0, -60px, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-slideInLeft { from { opacity: 0; transform: translate3d(-60px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-slideInRight { from { opacity: 0; transform: translate3d(60px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes pf-flipInX { 0% { transform: perspective(400px) rotateX(90deg); opacity: 0; } 100% { transform: perspective(400px) rotateX(0); opacity: 1; } }
+@keyframes pf-flipInY { 0% { transform: perspective(400px) rotateY(90deg); opacity: 0; } 100% { transform: perspective(400px) rotateY(0); opacity: 1; } }
+@keyframes pf-rotateIn { from { transform: rotate(-200deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pf-jackInTheBox { from { opacity: 0; transform: scale(0.1) rotate(30deg); transform-origin: center bottom; } 50% { transform: rotate(-10deg); } 70% { transform: rotate(3deg); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pf-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes pf-heartBeat { 0% { transform: scale(1); } 14% { transform: scale(1.3); } 28% { transform: scale(1); } 42% { transform: scale(1.3); } 70% { transform: scale(1); } }
+@keyframes pf-bounce { 0%, 20%, 53%, 80%, 100% { transform: translate3d(0, 0, 0); } 40%, 43% { transform: translate3d(0, -20px, 0); } 70% { transform: translate3d(0, -10px, 0); } 90% { transform: translate3d(0, -4px, 0); } }
+@keyframes pf-tada { 0% { transform: scale(1); } 10%, 20% { transform: scale(0.9) rotate(-3deg); } 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); } 40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); } 100% { transform: scale(1); } }
+@keyframes pf-rubberBand { 0% { transform: scale(1); } 30% { transform: scaleX(1.25) scaleY(0.75); } 40% { transform: scaleX(0.75) scaleY(1.25); } 50% { transform: scaleX(1.15) scaleY(0.85); } 65% { transform: scaleX(0.95) scaleY(1.05); } 75% { transform: scaleX(1.05) scaleY(0.95); } 100% { transform: scale(1); } }
+@keyframes pf-swing { 20% { transform: rotate(15deg); } 40% { transform: rotate(-10deg); } 60% { transform: rotate(5deg); } 80% { transform: rotate(-5deg); } 100% { transform: rotate(0); } }
+@keyframes pf-jello { 0%, 11.1%, 100% { transform: none; } 22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33.3% { transform: skewX(6.25deg) skewY(6.25deg); } 44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55.5% { transform: skewX(1.5deg) skewY(1.5deg); } 66.6% { transform: skewX(-0.75deg) skewY(-0.75deg); } }
+@keyframes pf-headShake { 0% { transform: translateX(0); } 6.5% { transform: translateX(-6px) rotateY(-9deg); } 18.5% { transform: translateX(5px) rotateY(7deg); } 31.5% { transform: translateX(-3px) rotateY(-5deg); } 43.5% { transform: translateX(2px) rotateY(3deg); } 50% { transform: translateX(0); } }
+@keyframes pf-shakeX { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); } 20%, 40%, 60%, 80% { transform: translateX(10px); } }
+@keyframes pf-shakeY { 0%, 100% { transform: translateY(0); } 10%, 30%, 50%, 70%, 90% { transform: translateY(-10px); } 20%, 40%, 60%, 80% { transform: translateY(10px); } }
+@keyframes pf-wobble { 0% { transform: none; } 15% { transform: translate3d(-25%, 0, 0) rotate(-5deg); } 30% { transform: translate3d(20%, 0, 0) rotate(3deg); } 45% { transform: translate3d(-15%, 0, 0) rotate(-3deg); } 60% { transform: translate3d(10%, 0, 0) rotate(2deg); } 75% { transform: translate3d(-5%, 0, 0) rotate(-1deg); } 100% { transform: none; } }
+@keyframes pf-flash { 0%, 50%, 100% { opacity: 1; } 25%, 75% { opacity: 0; } }
+@keyframes pf-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pf-contentShow { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes pf-overlayShow { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pf-loading { from { width: 0%; } to { width: 100%; } }
+@keyframes pf-circle-1 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+@keyframes pf-circle-2 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.6); } }
+@keyframes pf-circle-3 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.8); } }
+
+.fadeInUp { animation: pf-fadeInUp 0.8s both; }
+.fadeInDown { animation: pf-fadeInDown 0.8s both; }
+.fadeInLeft { animation: pf-fadeInLeft 0.8s both; }
+.fadeInRight { animation: pf-fadeInRight 0.8s both; }
+.fadeInTopLeft { animation: pf-fadeInTopLeft 0.8s both; }
+.fadeInTopRight { animation: pf-fadeInTopRight 0.8s both; }
+.fadeInBottomLeft { animation: pf-fadeInBottomLeft 0.8s both; }
+.fadeInBottomRight { animation: pf-fadeInBottomRight 0.8s both; }
+.fadeIn { animation: pf-fadeIn 0.8s both; }
+.fadeOut { animation: pf-fadeOut 0.8s both; }
+.zoomIn { animation: pf-zoomIn 0.8s both; }
+.zoomInUp { animation: pf-zoomInUp 0.8s both; }
+.zoomInDown { animation: pf-zoomInDown 0.8s both; }
+.zoomInLeft { animation: pf-zoomInLeft 0.8s both; }
+.zoomInRight { animation: pf-zoomInRight 0.8s both; }
+.backInUp { animation: pf-backInUp 1s both; }
+.backInDown { animation: pf-backInDown 1s both; }
+.backInLeft { animation: pf-backInLeft 1s both; }
+.backInRight { animation: pf-backInRight 1s both; }
+.bounceInUp { animation: pf-bounceInUp 1s both; }
+.bounceInDown { animation: pf-bounceInDown 1s both; }
+.bounceInLeft { animation: pf-bounceInLeft 1s both; }
+.bounceInRight { animation: pf-bounceInRight 1s both; }
+.slideInUp { animation: pf-slideInUp 0.8s both; }
+.slideInDown { animation: pf-slideInDown 0.8s both; }
+.slideInLeft { animation: pf-slideInLeft 0.8s both; }
+.slideInRight { animation: pf-slideInRight 0.8s both; }
+.flipInX { animation: pf-flipInX 1s both; }
+.flipInY { animation: pf-flipInY 1s both; }
+.rotateIn { animation: pf-rotateIn 1s both; }
+.jackInTheBox { animation: pf-jackInTheBox 1s both; }
+.pulse { animation: pf-pulse 2s ease-in-out infinite; }
+.heartBeat { animation: pf-heartBeat 1.3s ease-in-out infinite; }
+.bounce { animation: pf-bounce 1.5s ease infinite; }
+.tada { animation: pf-tada 1s both; }
+.rubberBand { animation: pf-rubberBand 1s both; }
+.swing { transform-origin: top center; animation: pf-swing 1s both; }
+.jello { animation: pf-jello 1s both; transform-origin: center; }
+.headShake { animation: pf-headShake 1s both; }
+.shakeX { animation: pf-shakeX 1s both; }
+.shakeY { animation: pf-shakeY 1s both; }
+.wobble { animation: pf-wobble 1s both; }
+.flash { animation: pf-flash 2s infinite; }
+.spin { animation: pf-spin 4s linear infinite; }
+.contentShow { animation: pf-contentShow 0.6s both; }
+.overlayShow { animation: pf-overlayShow 0.4s both; }
+.loading { animation: pf-loading 2s linear infinite; }
+.circle-1-animation { animation: pf-circle-1 2s ease-in-out infinite; }
+.circle-2-animation { animation: pf-circle-2 2.5s ease-in-out infinite; }
+.circle-3-animation { animation: pf-circle-3 3s ease-in-out infinite; }
+
+body { margin: 0; background: #fafafa; }
+`;
+
+function initIntroView() {
+  // 셀렉트 채우기
+  const cSel = $('#introCharSelect');
+  const wSel = $('#introWorldSelect');
+  if (cSel) {
+    const cur = cSel.value;
+    cSel.innerHTML = '<option value="">— 저장된 캐릭터에서 불러오기 —</option>';
+    for (const c of state.chars) {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = c.name;
+      cSel.appendChild(o);
+    }
+    if (cur) cSel.value = cur;
+  }
+  if (wSel) {
+    const cur = wSel.value;
+    wSel.innerHTML = '<option value="">— 사용 안 함 —</option>';
+    for (const w of state.worlds) {
+      const o = document.createElement('option');
+      o.value = w.id; o.textContent = w.name;
+      wSel.appendChild(o);
+    }
+    if (cur) wSel.value = cur;
+  }
+  renderIntroList();
+  // 슬라이더 갱신
+  updateIntroMaxTokens();
+  updateIntroThinkBudget();
+}
+
+function refreshIntroModels() {
+  const provider = $('#introProvider').value;
+  const sel = $('#introModel');
+  sel.innerHTML = '';
+  for (const m of MODELS[provider]) {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.name;
+    sel.appendChild(opt);
+  }
+  const saved = LS.get('lastModel:' + provider, null);
+  if (saved && MODELS[provider].find(m => m.id === saved)) sel.value = saved;
+}
+
+function updateIntroMaxTokens() {
+  const v = parseInt($('#introMaxTokens').value);
+  $('#introMaxTokensVal').textContent = formatNumber(v);
+}
+function updateIntroThinkBudget() {
+  const v = parseInt($('#introThinkBudget').value);
+  $('#introThinkBudgetVal').textContent = v === 0 ? '사용 안 함' : formatNumber(v);
+}
+
+/* 결과 HTML에서 코드 펜스 같은 잡것 제거 */
+function cleanIntroCode(s) {
+  let t = s.trim();
+  // 마크다운 코드블록 제거
+  t = t.replace(/^```(?:html)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+  return t.trim();
+}
+
+/* iframe에 미리보기 렌더 */
+function renderIntroPreview() {
+  const code = cleanIntroCode(state.introCurrentOutput);
+  const iframe = $('#introPreview');
+  const empty = $('#introPreviewEmpty');
+  if (!code) {
+    iframe.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  iframe.classList.remove('hidden');
+  const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${ANIMATION_RUNTIME_CSS}</style></head><body>${code}</body></html>`;
+  iframe.srcdoc = doc;
+}
+
+/* 코드 영역에 표시 */
+function renderIntroCode() {
+  $('#introCode').textContent = state.introCurrentOutput;
+  const cs = $('#introCodeStat');
+  if (cs) {
+    const len = state.introCurrentOutput.length;
+    cs.textContent = len ? `${formatNumber(len)}자` : '';
+  }
+  // 자동 스크롤
+  const el = $('#introCode');
+  el.scrollTop = el.scrollHeight;
+}
+
+function setIntroStatus(status, text) {
+  const dot = $('#introStatusDot');
+  dot.className = 'status-dot';
+  if (status) dot.classList.add(status);
+  $('#introStatusText').textContent = text;
+}
+
+async function introGenerate() {
+  if (state.introIsGenerating) {
+    if (state.introAbortController) state.introAbortController.abort();
+    return;
+  }
+
+  const charBody = $('#introCharBody').value.trim();
+  if (!charBody) { toast('캐릭터 설정을 입력해주세요'); return; }
+
+  const worldBody = $('#introWorldBody').value.trim();
+  const extra = $('#introExtraIdea').value.trim();
+  const provider = $('#introProvider').value;
+  const model = $('#introModel').value;
+  const maxTokens = parseInt($('#introMaxTokens').value);
+  const thinkBudget = parseInt($('#introThinkBudget').value);
+  const autoSave = $('#introAutoSave').checked;
+
+  const key = state.keys[provider];
+  if (!key) { toast('설정에서 API 키를 먼저 입력해주세요'); setView('settings'); return; }
+  if (thinkBudget > 0 && thinkBudget >= maxTokens) {
+    toast('추론 토큰은 최대 출력 토큰보다 작아야 합니다');
+    return;
+  }
+
+  const systemPrompt = state.systemPrompts.intro || DEFAULT_SYSTEM_PROMPTS.intro;
+  const userPrompt = `## 캐릭터 설정
+\`\`\`
+${charBody}
+\`\`\`
+${worldBody ? `\n## 세계관 설정\n\`\`\`\n${worldBody}\n\`\`\`\n` : ''}${extra ? `\n## 추가 디자인/내용 요청\n${extra}\n` : ''}
+위 정보를 바탕으로 캐릭터 소개 페이지를 HTML로 만들어 주세요. {{user}}가 채팅 시작 전 알아두면 좋은 정보만 담고, 직접 알아가는 게 좋은 정보(NSFW, 깊은 트라우마 디테일, 비밀, 모든 호불호 등)는 제외하세요. 첫 글자는 \`<\`로 시작해야 하며, 마크다운 코드블록·설명·메타 코멘트는 일절 출력하지 마세요.`;
+
+  LS.set('lastModel:' + provider, model);
+
+  state.introIsGenerating = true;
+  state.introCurrentOutput = '';
+  state.introAbortController = new AbortController();
+  $('#introGenerateBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12"/></svg>중지';
+  setIntroStatus('streaming', '생성 중...');
+  renderIntroCode();
+  renderIntroPreview();
+
+  // 스트리밍 콜백
+  let lastPreviewUpdate = 0;
+  const onDelta = (text) => {
+    state.introCurrentOutput += text;
+    renderIntroCode();
+    // 미리보기는 너무 자주 갱신하지 않도록 throttle (300ms)
+    if ($('#introLivePreview').checked) {
+      const now = Date.now();
+      if (now - lastPreviewUpdate > 300) {
+        lastPreviewUpdate = now;
+        renderIntroPreview();
+      }
+    }
+  };
+
+  try {
+    if (provider === 'anthropic') {
+      await callAnthropicForIntro({ key, model, maxTokens, thinkBudget, systemPrompt, userPrompt, onDelta });
+    } else {
+      await callGoogleForIntro({ key, model, maxTokens, thinkBudget, systemPrompt, userPrompt, onDelta });
+    }
+    renderIntroPreview(); // 최종 갱신
+    setIntroStatus('done', '완료');
+
+    if (autoSave && state.introCurrentOutput.trim()) {
+      saveIntroCurrent();
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      setIntroStatus('done', '중지됨');
+      renderIntroPreview();
+    } else {
+      console.error(err);
+      setIntroStatus('error', '오류: ' + err.message);
+      toast('오류: ' + err.message, 4000);
+    }
+  } finally {
+    state.introIsGenerating = false;
+    state.introAbortController = null;
+    $('#introGenerateBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>소개 페이지 생성';
+  }
+}
+
+/* Claude (소개페이지용 - thinking은 무시하고 본문 text만 누적) */
+async function callAnthropicForIntro({ key, model, maxTokens, thinkBudget, systemPrompt, userPrompt, onDelta }) {
+  const body = {
+    model,
+    max_tokens: maxTokens,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+    stream: true,
+  };
+  if (thinkBudget > 0) {
+    // Opus 4.8은 adaptive, 나머지는 manual
+    if (model === 'claude-opus-4-8') {
+      body.thinking = { type: 'adaptive' };
+      body.output_config = { effort: budgetToEffort(thinkBudget, maxTokens) };
+    } else {
+      body.thinking = { type: 'enabled', budget_tokens: thinkBudget };
+    }
+  }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify(body),
+    signal: state.introAbortController.signal,
+  });
+
+  if (!res.ok) {
+    let errMsg = `HTTP ${res.status}`;
+    try { const e = await res.json(); errMsg = e.error?.message || errMsg; } catch {}
+    throw new Error(errMsg);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (!data || data === '[DONE]') continue;
+      try {
+        const evt = JSON.parse(data);
+        if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+          onDelta(evt.delta.text);
+        } else if (evt.type === 'error') {
+          throw new Error(evt.error?.message || 'API error');
+        }
+      } catch (e) {
+        if (e.message?.includes('API error')) throw e;
+      }
+    }
+  }
+}
+
+async function callGoogleForIntro({ key, model, maxTokens, thinkBudget, systemPrompt, userPrompt, onDelta }) {
+  const body = {
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+    generationConfig: {
+      maxOutputTokens: maxTokens,
+      thinkingConfig: { thinkingBudget: thinkBudget > 0 ? thinkBudget : 0 },
+    },
+  };
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: state.introAbortController.signal,
+  });
+  if (!res.ok) {
+    let errMsg = `HTTP ${res.status}`;
+    try { const e = await res.json(); errMsg = e.error?.message || errMsg; } catch {}
+    throw new Error(errMsg);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (!data) continue;
+      try {
+        const evt = JSON.parse(data);
+        const cand = evt.candidates?.[0];
+        if (!cand) continue;
+        const parts = cand.content?.parts || [];
+        for (const p of parts) {
+          if (p.thought === true) continue;
+          if (p.text) onDelta(p.text);
+        }
+        if (evt.error) throw new Error(evt.error.message || 'API error');
+      } catch (e) {
+        if (e.message?.includes('API error')) throw e;
+      }
+    }
+  }
+}
+
+function saveIntroCurrent(nameOverride) {
+  const code = cleanIntroCode(state.introCurrentOutput);
+  if (!code) { toast('저장할 내용이 없습니다'); return; }
+  let name = nameOverride;
+  if (!name) {
+    // 캐릭터 셀렉트나 캐릭터 본문 첫 줄에서 이름 추출 시도
+    const cSel = $('#introCharSelect').value;
+    if (cSel) {
+      const c = state.chars.find(x => x.id === cSel);
+      if (c) name = c.name + ' — 소개페이지';
+    }
+    if (!name) name = `소개페이지 ${new Date().toLocaleString('ko-KR')}`;
+  }
+  const item = { id: uid(), name, body: code, ts: Date.now() };
+  state.intros.unshift(item);
+  LS.set('intros', state.intros);
+  renderIntroList();
+  toast(`「${name}」 저장됨`);
+}
+
+function deleteIntro(id) {
+  if (!confirm('이 소개 페이지를 삭제하시겠습니까?')) return;
+  state.intros = state.intros.filter(x => x.id !== id);
+  LS.set('intros', state.intros);
+  renderIntroList();
+  toast('소개 페이지 삭제됨');
+}
+
+function loadIntro(item) {
+  state.introCurrentOutput = item.body;
+  renderIntroCode();
+  renderIntroPreview();
+  setIntroStatus('done', `「${item.name}」 불러옴`);
+  // 스크롤 위로
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderIntroList() {
+  const list = $('#introList');
+  if (!list) return;
+  if (state.intros.length === 0) {
+    list.innerHTML = '<div class="empty-list" style="padding: 20px; text-align: center;">저장된 소개 페이지가 없습니다</div>';
+    return;
+  }
+  list.innerHTML = '';
+  for (const it of state.intros) {
+    const el = document.createElement('div');
+    el.style.cssText = 'padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px;';
+    el.innerHTML = `
+      <div style="flex:1; overflow:hidden; cursor: pointer;" data-act="load">
+        <div style="font-weight: 600; margin-bottom: 2px;">${escapeHtml(it.name)}</div>
+        <div style="font-size: 11px; color: var(--text-faint);">${timeAgo(it.ts)} · ${formatNumber(it.body.length)}자</div>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="btn btn-sm btn-ghost" data-act="load">불러오기</button>
+        <button class="btn btn-sm btn-ghost" data-act="del" style="color: var(--danger);">삭제</button>
+      </div>
+    `;
+    el.querySelectorAll('[data-act="load"]').forEach(b => b.onclick = () => loadIntro(it));
+    el.querySelector('[data-act="del"]').onclick = (e) => { e.stopPropagation(); deleteIntro(it.id); };
+    list.appendChild(el);
+  }
+}
+
+function copyIntroCode() {
+  const code = cleanIntroCode(state.introCurrentOutput);
+  if (!code) { toast('복사할 코드가 없습니다'); return; }
+  navigator.clipboard.writeText(code).then(() => toast('코드 복사됨'));
+}
+
+function downloadIntro() {
+  const code = cleanIntroCode(state.introCurrentOutput);
+  if (!code) { toast('다운로드할 내용이 없습니다'); return; }
+  const fullDoc = `<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>캐릭터 소개</title>
+<style>${ANIMATION_RUNTIME_CSS}</style>
+</head>
+<body>
+${code}
+</body>
+</html>`;
+  const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `intro-${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function openIntroInNewTab() {
+  const code = cleanIntroCode(state.introCurrentOutput);
+  if (!code) { toast('표시할 내용이 없습니다'); return; }
+  const fullDoc = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>소개</title><style>${ANIMATION_RUNTIME_CSS}</style></head><body>${code}</body></html>`;
+  const w = window.open('', '_blank');
+  if (w) { w.document.write(fullDoc); w.document.close(); }
+}
+
 /* ============ 테마 ============ */
+
 function applyTheme(t) {
   document.body.setAttribute('data-theme', t);
   state.theme = t;
@@ -2065,6 +2822,7 @@ function bind() {
   $('#savePromptsBtn').onclick = () => {
     state.systemPrompts.world = $('#worldSystemPrompt').value;
     state.systemPrompts.char = $('#charSystemPrompt').value;
+    state.systemPrompts.intro = $('#introSystemPrompt').value;
     LS.set('systemPrompts', state.systemPrompts);
     toast('시스템 프롬프트 저장됨');
   };
@@ -2074,7 +2832,8 @@ function bind() {
     b.onclick = () => {
       const k = b.dataset.reset;
       if (!confirm('해당 시스템 프롬프트를 기본값으로 복원하시겠습니까?')) return;
-      const id = k === 'world' ? '#worldSystemPrompt' : '#charSystemPrompt';
+      const idMap = { world: '#worldSystemPrompt', char: '#charSystemPrompt', intro: '#introSystemPrompt' };
+      const id = idMap[k];
       $(id).value = DEFAULT_SYSTEM_PROMPTS[k];
       toast('기본값 복원됨 (저장 버튼을 눌러야 적용됩니다)');
     };
@@ -2097,11 +2856,43 @@ function bind() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('#modalBackdrop').classList.contains('hidden')) closeModal();
   });
+
+  // ========== 소개 페이지 (INTRO) 바인딩 ==========
+  $('#introProvider').onchange = refreshIntroModels;
+  $('#introModel').onchange = (e) => LS.set('lastModel:' + $('#introProvider').value, e.target.value);
+  $('#introMaxTokens').oninput = updateIntroMaxTokens;
+  $('#introThinkBudget').oninput = updateIntroThinkBudget;
+
+  // 저장된 캐릭터/세계관 선택 → 본문 자동 채움
+  $('#introCharSelect').onchange = (e) => {
+    const id = e.target.value;
+    if (!id) return;
+    const c = state.chars.find(x => x.id === id);
+    if (c) $('#introCharBody').value = c.body;
+  };
+  $('#introWorldSelect').onchange = (e) => {
+    const id = e.target.value;
+    if (!id) { $('#introWorldBody').value = ''; return; }
+    const w = state.worlds.find(x => x.id === id);
+    if (w) $('#introWorldBody').value = w.body;
+  };
+
+  $('#introGenerateBtn').onclick = introGenerate;
+  $('#introCopyBtn').onclick = copyIntroCode;
+  $('#introDownloadBtn').onclick = downloadIntro;
+  $('#introSaveBtn').onclick = () => saveIntroCurrent();
+  $('#introOpenBtn').onclick = openIntroInNewTab;
+
+  // 미리보기 토글 변경 시 즉시 반영
+  $('#introLivePreview').onchange = (e) => {
+    if (e.target.checked) renderIntroPreview();
+  };
 }
 
 function init() {
   applyTheme(state.theme);
   refreshModels();
+  refreshIntroModels();
   updateMaxTokens();
   updateThinkBudget();
   renderTemplateChips();
